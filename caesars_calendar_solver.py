@@ -1,9 +1,23 @@
-#!/opt/homebrew/bin/python3.11
+#!/usr/bin/env python
 import numpy as np
 from itertools import product, combinations, cycle
 from scipy.ndimage import label
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import datetime
+
+# Get the current date and time
+today = datetime.date.today()
+
+# Get the three-letter month abbreviation (e.g., "JUN")
+current_month_abbr = today.strftime("%b").upper()
+
+# Get the day of the month as a number (e.g., "26")
+# str(today.day) converts the integer day to a string
+current_day_number = str(today.day)
+
+# Get the three-letter weekday abbreviation (e.g., "THU")
+current_weekday_abbr = today.strftime("%a").upper()
 
 # Tetrominoes (3 pieces)
 tetrominoes = [
@@ -44,7 +58,45 @@ BOARD_WIDTH = 7
 # Create the board
 board = np.ones((BOARD_HEIGHT, BOARD_WIDTH), dtype=int)
 blocked_edges = [(0, 6), (1, 6), (7, 0), (7, 1), (7, 2), (7, 3)]
-holes = [(0, 5), (5, 2), (6, 5)]  # JUN, 24, TUE
+
+
+# Define the lists for associations
+month_names = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
+day_numbers = [str(num) for num in list(range(1, 32))] # Numbers from 1 to 31
+weekday_names = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
+
+# Create a combined list of all labels
+cell_labels = month_names + day_numbers + weekday_names
+
+# Create cyclical iterators for labels
+labels_cycler = cycle(cell_labels)
+
+# Dictionary to store the forward associations (coordinate -> label)
+# The keys will be (row, column) tuples, and values will be a label
+# containing a 'month', 'day' or 'weekday' for that coordinate.
+board_labels = {}
+
+# Iterate through the board from left to right, top to bottom
+for r in range(BOARD_HEIGHT):
+    for c in range(BOARD_WIDTH):
+        # Check if the current coordinate is in the blocked edges list
+        if (r, c) not in blocked_edges:
+            # If not blocked, associate it with the next available label
+            current_label = next(labels_cycler)
+            board_labels[(r, c)] = current_label
+
+# --- Create the reversed association dictionary (label -> list of coordinates) ---
+# This dictionary will map each label to a list of all coordinates that it is associated with.
+board_coords = {}
+for coord, label_text in board_labels.items():
+    # If the label is not yet a key in the reversed dictionary, initialize it with an empty list
+    if label_text not in board_coords:
+        board_coords[label_text] = []
+    # Add the current coordinate to the list associated with this label
+    board_coords[label_text]= coord
+
+
+holes = [board_coords[label_text] for label_text in [current_month_abbr, current_day_number, current_weekday_abbr]]  # e.g. JUN, 24, TUE
 for r, c in holes + blocked_edges:
     board[r, c] = 0
 
@@ -129,7 +181,7 @@ def solve(board, pieces_left, placements):
 # Solver with pruning and iteration display
 
 solutions = []
-desired_solutions = 10
+desired_solutions = 3
 
 while (len(solutions) < desired_solutions):
     # get a different solution every time?
@@ -152,61 +204,62 @@ if 'solutions' in globals() and solutions:
                     if shape[i, j] == 1:
                         piece_ids[r0 + i, c0 + j] = idx
 
-    # Plotting the actual solution
-    fig, ax = plt.subplots(figsize=(7, 8))
-    ax.set_xlim(0, BOARD_WIDTH)
-    ax.set_ylim(0, BOARD_HEIGHT)
-    ax.set_xticks(np.arange(0, BOARD_WIDTH + 1))
-    ax.set_yticks(np.arange(0, BOARD_HEIGHT + 1))
-    ax.grid(True)
+        # Plotting the actual solution
+        fig, ax = plt.subplots(figsize=(7, 8))
+        ax.set_xlim(0, BOARD_WIDTH)
+        ax.set_ylim(0, BOARD_HEIGHT)
+        ax.set_xticks(np.arange(0, BOARD_WIDTH + 1))
+        ax.set_yticks(np.arange(0, BOARD_HEIGHT + 1))
+        ax.grid(True)
 
-    for r in range(BOARD_HEIGHT):
-        for c in range(BOARD_WIDTH):
-            y = BOARD_HEIGHT - r - 1
-            x = c
-            piece_val = piece_ids[r, c]
+        for r in range(BOARD_HEIGHT):
+            for c in range(BOARD_WIDTH):
+                y = BOARD_HEIGHT - r - 1
+                x = c
+                piece_val = piece_ids[r, c]
 
-            if (r, c) in holes:
-                facecolor = 'white'
-            elif (r, c) in blocked_edges:
-                facecolor = 'black'
-            elif board[r, c] == 1:
-                facecolor = f"C{(piece_val % 10)}" if piece_val else "tan"
-            else:
-                facecolor = 'white'
+                if (r, c) in holes:
+                    facecolor = 'white'
+                elif (r, c) in blocked_edges:
+                    facecolor = 'black'
+                elif board[r, c] == 1:
+                    facecolor = f"C{(piece_val % 10)}" if piece_val else "tan"
+                else:
+                    facecolor = 'white'
 
-            rect = patches.Rectangle((x, y), 1, 1, linewidth=1, edgecolor='black', facecolor=facecolor)
-            ax.add_patch(rect)
+                rect = patches.Rectangle((x, y), 1, 1, linewidth=1, edgecolor='black', facecolor=facecolor)
+                ax.add_patch(rect)
 
-    # Draw thick outlines between pieces
-    for r in range(BOARD_HEIGHT):
-        for c in range(BOARD_WIDTH):
-            current_id = piece_ids[r, c]
-            if current_id == 0:
-                continue
+        # Draw thick outlines between pieces
+        for r in range(BOARD_HEIGHT):
+            for c in range(BOARD_WIDTH):
+                current_id = piece_ids[r, c]
+                if current_id == 0:
+                    continue
 
-            y = BOARD_HEIGHT - r - 1
-            x = c
+                y = BOARD_HEIGHT - r - 1
+                x = c
 
-            for dr, dc, side in [(-1, 0, 'top'), (1, 0, 'bottom'), (0, -1, 'left'), (0, 1, 'right')]:
-                nr, nc = r + dr, c + dc
-                neighbor_id = piece_ids[nr, nc] if 0 <= nr < BOARD_HEIGHT and 0 <= nc < BOARD_WIDTH else -1
-                if neighbor_id != current_id:
-                    if side == 'top':
-                        ax.plot([x, x + 1], [y + 1, y + 1], color='black', linewidth=2)
-                    elif side == 'bottom':
-                        ax.plot([x, x + 1], [y, y], color='black', linewidth=2)
-                    elif side == 'left':
-                        ax.plot([x, x], [y, y + 1], color='black', linewidth=2)
-                    elif side == 'right':
-                        ax.plot([x + 1, x + 1], [y, y + 1], color='black', linewidth=2)
+                for dr, dc, side in [(-1, 0, 'top'), (1, 0, 'bottom'), (0, -1, 'left'), (0, 1, 'right')]:
+                    nr, nc = r + dr, c + dc
+                    neighbor_id = piece_ids[nr, nc] if 0 <= nr < BOARD_HEIGHT and 0 <= nc < BOARD_WIDTH else -1
+                    if neighbor_id != current_id:
+                        if side == 'top':
+                            ax.plot([x, x + 1], [y + 1, y + 1], color='black', linewidth=2)
+                        elif side == 'bottom':
+                            ax.plot([x, x + 1], [y, y], color='black', linewidth=2)
+                        elif side == 'left':
+                            ax.plot([x, x], [y, y + 1], color='black', linewidth=2)
+                        elif side == 'right':
+                            ax.plot([x + 1, x + 1], [y, y + 1], color='black', linewidth=2)
 
-    # Add labels in hole positions
-    label_map = {(0, 5): "JUN", (4, 4): "19", (7, 4): "THU"}
-    for (r, c), text in label_map.items():
-        ax.text(c + 0.5, BOARD_HEIGHT - r - 0.5, text, ha='center', va='center', fontsize=9, color='black')
+        # Add labels in hole positions for today
 
-    ax.set_aspect('equal')
-    ax.set_title("Caesar's Calendar — June 19, Thursday")
-    plt.tight_layout()
-    plt.show()
+        for label_text in [current_month_abbr, current_day_number, current_weekday_abbr]:
+            (r, c) = board_coords[label_text]
+            ax.text(c + 0.5, BOARD_HEIGHT - r - 0.5, label_text, ha='center', va='center', fontsize=9, color='black')
+
+        ax.set_aspect('equal')
+        ax.set_title("Caesar's Calendar — June 19, Thursday")
+        plt.tight_layout()
+        plt.show()
