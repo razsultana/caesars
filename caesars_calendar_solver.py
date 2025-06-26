@@ -6,19 +6,35 @@ from sklearn.utils import shuffle
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import datetime
+import argparse # Import the argparse module
+
+# --- Argument Parsing ---
+parser = argparse.ArgumentParser(description="Solve Caesar's Calendar puzzle.")
+parser.add_argument("--month", dest="current_month_abbr", type=str, help="Three-letter month abbreviation (e.g., 'JUN')")
+parser.add_argument("--day", dest="current_day_number", type=str, help="Day of the month as a number (e.g., '26')")
+parser.add_argument("--weekday", dest="current_weekday_abbr", type=str, help="Three-letter weekday abbreviation (e.g., 'THU')")
+parser.add_argument("--solutions", dest="desired_solutions", type=int, default=3,
+                    help="Number of desired solutions to find (default: 3)")
+
+args = parser.parse_args()
 
 # Get the current date and time
 today = datetime.date.today()
 
 # Get the three-letter month abbreviation (e.g., "JUN")
-current_month_abbr = today.strftime("%b").upper()
+# Use the command-line argument if provided, otherwise use today's date
+current_month_abbr = args.current_month_abbr if args.current_month_abbr else today.strftime("%b").upper()
 
 # Get the day of the month as a number (e.g., "26")
-# str(today.day) converts the integer day to a string
-current_day_number = str(today.day)
+# Use the command-line argument if provided, otherwise use today's date
+current_day_number = args.current_day_number if args.current_day_number else str(today.day)
 
 # Get the three-letter weekday abbreviation (e.g., "THU")
-current_weekday_abbr = today.strftime("%a").upper()
+# Use the command-line argument if provided, otherwise use today's date
+current_weekday_abbr = args.current_weekday_abbr if args.current_weekday_abbr else today.strftime("%a").upper()
+
+# Use the command-line argument for desired_solutions
+desired_solutions = args.desired_solutions
 
 # Tetrominoes (3 pieces)
 tetrominoes = [
@@ -184,7 +200,6 @@ def solve(board, pieces_left, placements):
 
 solutions = []
 solution_colors = []
-desired_solutions = 3
 
 while (len(solutions) < desired_solutions):
     # get a different solution every time?
