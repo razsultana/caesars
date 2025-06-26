@@ -224,7 +224,7 @@ if 'solutions' in globals() and solutions:
                         piece_ids[r0 + i, c0 + j] = idx
 
         # Plotting the actual solution
-        fig, ax = plt.subplots(figsize=(7, 8))
+        fig, ax = plt.subplots(figsize=(4.66, 5.33))
         ax.set_xlim(0, BOARD_WIDTH)
         ax.set_ylim(0, BOARD_HEIGHT)
         ax.set_xticks(np.arange(0, BOARD_WIDTH + 1))
@@ -281,4 +281,6 @@ if 'solutions' in globals() and solutions:
         ax.set_aspect('equal')
         ax.set_title("Caesar's Calendar — June 19, Thursday")
         plt.tight_layout()
-        plt.show()
+
+# After the loop, call plt.show() once to display all figures
+plt.show()
