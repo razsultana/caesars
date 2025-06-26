@@ -2,6 +2,7 @@
 import numpy as np
 from itertools import product, combinations, cycle
 from scipy.ndimage import label
+from sklearn.utils import shuffle
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import datetime
@@ -50,6 +51,7 @@ pentominoes = [
 ]
 
 pieces = tetrominoes + pentominoes
+piece_colors = np.array([i for i in range(0, len(pieces))])
 
 # Constants
 BOARD_HEIGHT = 8
@@ -181,22 +183,24 @@ def solve(board, pieces_left, placements):
 # Solver with pruning and iteration display
 
 solutions = []
+solution_colors = []
 desired_solutions = 3
 
 while (len(solutions) < desired_solutions):
     # get a different solution every time?
-    np.random.shuffle(pieces)
+    pieces_shuffled, colors_shuffled = shuffle(pieces, piece_colors)
 
     # Run solver
     board_copy = board.copy()
     iteration_count = 0
-    solve(board_copy, pieces, [])
+    solve(board_copy, pieces_shuffled, [])
+    solution_colors.append(colors_shuffled)
     print(f"\n✅ Found solution {len(solutions)} in {iteration_count} iterations.\n")
 
 piece_ids = np.zeros((BOARD_HEIGHT, BOARD_WIDTH), dtype=int)
 
 if 'solutions' in globals() and solutions:
-    for solution in solutions:
+    for solution_no, solution in enumerate(solutions):
         for idx, (shape, r0, c0) in enumerate(solution, 1):
             h, w = shape.shape
             for i in range(h):
@@ -223,7 +227,7 @@ if 'solutions' in globals() and solutions:
                 elif (r, c) in blocked_edges:
                     facecolor = 'black'
                 elif board[r, c] == 1:
-                    facecolor = f"C{(piece_val % 10)}" if piece_val else "tan"
+                    facecolor = f"C{(solution_colors[solution_no][piece_val - 1])}" if piece_val else "tan"
                 else:
                     facecolor = 'white'
 
