@@ -10,9 +10,9 @@ import argparse # Import the argparse module
 
 # --- Argument Parsing ---
 parser = argparse.ArgumentParser(description="Solve Caesar's Calendar puzzle.")
-parser.add_argument("--month", dest="current_month_abbr", type=str, help="Three-letter month abbreviation (e.g., 'JUN')")
-parser.add_argument("--day", dest="current_day_number", type=str, help="Day of the month as a number (e.g., '26')")
-parser.add_argument("--weekday", dest="current_weekday_abbr", type=str, help="Three-letter weekday abbreviation (e.g., 'THU')")
+parser.add_argument("--month", dest="month_abbr", type=str, help="Three-letter month abbreviation (e.g., 'JUN')")
+parser.add_argument("--day", dest="day_number", type=str, help="Day of the month as a number (e.g., '26')")
+parser.add_argument("--weekday", dest="weekday_abbr", type=str, help="Three-letter weekday abbreviation (e.g., 'THU')")
 parser.add_argument("--solutions", dest="desired_solutions", type=int, default=3,
                     help="Number of desired solutions to find (default: 3)")
 
@@ -23,15 +23,15 @@ today = datetime.date.today()
 
 # Get the three-letter month abbreviation (e.g., "JUN")
 # Use the command-line argument if provided, otherwise use today's date
-current_month_abbr = args.current_month_abbr if args.current_month_abbr else today.strftime("%b").upper()
+month_abbr = args.month_abbr if args.month_abbr else today.strftime("%b").upper()
 
 # Get the day of the month as a number (e.g., "26")
 # Use the command-line argument if provided, otherwise use today's date
-current_day_number = args.current_day_number if args.current_day_number else str(today.day)
+day_number = args.day_number if args.day_number else str(today.day)
 
 # Get the three-letter weekday abbreviation (e.g., "THU")
 # Use the command-line argument if provided, otherwise use today's date
-current_weekday_abbr = args.current_weekday_abbr if args.current_weekday_abbr else today.strftime("%a").upper()
+weekday_abbr = args.weekday_abbr if args.weekday_abbr else today.strftime("%a").upper()
 
 # Use the command-line argument for desired_solutions
 desired_solutions = args.desired_solutions
@@ -114,7 +114,7 @@ for coord, label_text in board_labels.items():
     board_coords[label_text]= coord
 
 
-holes = [board_coords[label_text] for label_text in [current_month_abbr, current_day_number, current_weekday_abbr]]  # e.g. JUN, 24, TUE
+holes = [board_coords[label_text] for label_text in [month_abbr, day_number, weekday_abbr]]  # e.g. JUN, 24, TUE
 for r, c in holes + blocked_edges:
     board[r, c] = 0
 
@@ -252,8 +252,8 @@ if 'solutions' in globals() and solutions:
         # Draw thick outlines between pieces
         for r in range(BOARD_HEIGHT):
             for c in range(BOARD_WIDTH):
-                current_id = piece_ids[r, c]
-                if current_id == 0:
+                id = piece_ids[r, c]
+                if id == 0:
                     continue
 
                 y = BOARD_HEIGHT - r - 1
@@ -262,7 +262,7 @@ if 'solutions' in globals() and solutions:
                 for dr, dc, side in [(-1, 0, 'top'), (1, 0, 'bottom'), (0, -1, 'left'), (0, 1, 'right')]:
                     nr, nc = r + dr, c + dc
                     neighbor_id = piece_ids[nr, nc] if 0 <= nr < BOARD_HEIGHT and 0 <= nc < BOARD_WIDTH else -1
-                    if neighbor_id != current_id:
+                    if neighbor_id != id:
                         if side == 'top':
                             ax.plot([x, x + 1], [y + 1, y + 1], color='black', linewidth=2)
                         elif side == 'bottom':
@@ -274,12 +274,13 @@ if 'solutions' in globals() and solutions:
 
         # Add labels in hole positions for today
 
-        for label_text in [current_month_abbr, current_day_number, current_weekday_abbr]:
+        for label_text in [month_abbr, day_number, weekday_abbr]:
             (r, c) = board_coords[label_text]
             ax.text(c + 0.5, BOARD_HEIGHT - r - 0.5, label_text, ha='center', va='center', fontsize=9, color='black')
 
         ax.set_aspect('equal')
-        ax.set_title("Caesar's Calendar — June 19, Thursday")
+        my_title = f"Caesar's Calendar — {month_abbr} {day_number}, {weekday_abbr}"
+        ax.set_title(my_title)
         plt.tight_layout()
 
 # After the loop, call plt.show() once to display all figures
