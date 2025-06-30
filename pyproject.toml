@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "caesars-calendar-solver"
+version = "0.3.0"
+description = "A solver for Caesar's Calendar puzzle"
+authors = [{ name = "Razvan Sultana", email = "razvan.sultana@gmail.com" }]
+dependencies = [
+    "numpy",
+    "scipy",
+    "matplotlib",
+    "scikit-learn"
+]
+requires-python = ">=3.8"
+
+[project.scripts]
+caesars-calendar-solver = "caesars_calendar_solver.solver:main"
