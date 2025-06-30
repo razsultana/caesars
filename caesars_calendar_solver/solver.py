@@ -215,6 +215,8 @@ def main():
     month = (args.month or today.strftime("%b")).upper()
     day = args.day or str(today.day)
     weekday = (args.weekday or today.strftime("%a")).upper()
+    
+    print(f"Looking for {args.solutions} solution(s) for {weekday}, {month} {day}...")
 
     sols, colors, board, holes, coords = solve_puzzle(month, day, weekday, args.solutions)
     display_solution(sols, colors, board, holes, coords, month, day, weekday)
