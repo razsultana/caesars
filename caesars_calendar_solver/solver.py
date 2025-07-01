@@ -45,7 +45,7 @@ blocked_edges = [(0, 6), (1, 6), (7, 0), (7, 1), (7, 2), (7, 3)]
 
 month_names = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
 day_numbers = [str(num) for num in range(1, 32)]
-weekday_names = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
+weekday_names = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
 cell_labels = month_names + day_numbers + weekday_names
 
 
